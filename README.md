@@ -37,14 +37,6 @@ A production-grade, local PySpark development environment using Docker & Docker 
 
 ---
 
-## 🌱 Extendable Ideas
-
-- 📊 Add CSV/Parquet data ingestion  
-- 🧠 Connect to Jupyter Notebook  
-- 🕸️ Integrate with Kafka, PostgreSQL, or ML pipelines  
-- 📂 Support for larger multi-node Spark clusters (later)
-
----
 
 ## 👨‍💻 Ideal For
 
