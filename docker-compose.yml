@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  sparklab:
+    build: .
+    container_name: sparklab_app
+    volumes:
+      - ./app:/app
+    environment:
+      - PYSPARK_PYTHON=python3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: '4g'
+    restart: unless-stopped
