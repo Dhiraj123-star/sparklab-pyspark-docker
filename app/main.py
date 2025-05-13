@@ -1,3 +1,4 @@
+import os
 from pyspark.sql import SparkSession
 
 def main():
@@ -6,8 +7,9 @@ def main():
         .master("local[*]") \
         .getOrCreate()
 
-    data = [("Alice", 25), ("Bob", 30), ("Cathy", 27)]
-    df = spark.createDataFrame(data, ["Name", "Age"])
+    # Use absolute path inside the container
+    csv_path = "/app/data/people.csv"
+    df = spark.read.csv(csv_path, header=True, inferSchema=True)
     df.show()
 
     spark.stop()
