@@ -17,5 +17,8 @@ RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
 COPY app /app
 WORKDIR /app
 
-# Run the PySpark app
-CMD ["python", "main.py"]
+# Expose Flask default port
+EXPOSE 5000
+
+# Default command runs the Flask API
+CMD ["python", "server.py"]

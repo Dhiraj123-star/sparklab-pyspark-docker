@@ -8,6 +8,8 @@ services:
       - ./app:/app
     environment:
       - PYSPARK_PYTHON=python3
+    ports:
+      - "5000:5000"  # Expose container port 5000 to host machine port 5000
     deploy:
       resources:
         limits:
