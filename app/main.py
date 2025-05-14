@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 def create_spark_session():
     return SparkSession.builder \
@@ -11,9 +12,15 @@ def create_spark_session():
 def load_csv_data(spark):
     # Use absolute path inside the container
     csv_path = "/app/data/people.csv"
-    return spark.read.csv(csv_path, header=True, inferSchema=True)
+    # Define schema for validation
+    schema = StructType([
+        StructField("name", StringType(), False),  # Non-nullable string
+        StructField("age", IntegerType(), True)   # Nullable integer
+    ])
+    df = spark.read.csv(csv_path, header=True, schema=schema)
+    return df
 
-def insert_to_db(spark, df):
+def insert_to_db(spark, df, mode="overwrite"):
     # Convert Spark DataFrame to Pandas for SQLite insertion
     pandas_df = df.toPandas()
     
@@ -22,25 +29,24 @@ def insert_to_db(spark, df):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # Create table dynamically based on DataFrame schema
-    columns = pandas_df.columns
-    # Assume all columns are TEXT for simplicity; adjust types if needed
-    col_definitions = ", ".join([f"{col} TEXT" for col in columns])
-    create_table_query = f"""
+    # Create table with specific types
+    create_table_query = """
         CREATE TABLE IF NOT EXISTS people (
-            {col_definitions}
+            name TEXT NOT NULL,
+            age INTEGER,
+            PRIMARY KEY (name)
         )
     """
     cursor.execute(create_table_query)
     
-    # Drop existing data to avoid duplicates (use INSERT OR IGNORE for append)
-    cursor.execute("DELETE FROM people")
+    # Clear table only in overwrite mode
+    if mode == "overwrite":
+        cursor.execute("DELETE FROM people")
     
     # Insert data
-    placeholders = ", ".join(["?" for _ in columns])
-    insert_query = f"INSERT INTO people ({', '.join(columns)}) VALUES ({placeholders})"
+    insert_query = "INSERT OR IGNORE INTO people (name, age) VALUES (?, ?)"
     for row in pandas_df.itertuples(index=False):
-        cursor.execute(insert_query, tuple(row))
+        cursor.execute(insert_query, (row.name, row.age))
     
     # Commit and close
     conn.commit()
